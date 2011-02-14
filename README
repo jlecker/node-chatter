@@ -1,6 +1,8 @@
 simple IRC library for node.js 0.4
 
-Currently implements a rather limited IRC client API.
+Currently implements a rather limited IRC client API. You could make a bot with
+it. I will add to it as I need more, and possibly package it properly if/when
+it reaches some level of refinement.
 
 
 Usage:
@@ -33,8 +35,8 @@ var c = new irc.Client(
 c.on('ready', function () {});
 // fires when client is ready (connected and authenticated; autojoin channels will have been joined also, if given)
 c.on('joined', function (nick, channel) {});
-// fires when a channel is joined (including when the client itself joins), passing the nickname and channel
-// includes channel joins by the client; you can check (nick === c.nick) to filter
+// fires when a channel is joined, passing the nickname and channel
+// includes channel joins by the client itself; you can check (nick === c.nick) to filter
 c.on('message', function (message, from, to) {});
 // fires when a message is received, passing the message, who sent it, and the nick or channel that it was sent to
 
