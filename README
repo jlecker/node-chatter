@@ -1,0 +1,64 @@
+simple IRC library for node.js 0.4
+
+Currently implements a rather limited IRC client API.
+
+
+Usage:
+
+// first, import the module
+var irc = require('irc');
+
+
+The Client:
+// create a new client
+var c = new irc.Client('irc.server.net', 'clientnick');
+// connects to the given server with the given nick
+
+// client with options (defaults shown)
+var c = new irc.Client(
+    'irc.server.net',
+    'clientnick',
+    {
+        'port': 6667,
+        'user': 'guest',
+        'real': 'Guest',
+        'join': [],
+        'debug': false
+    }
+);
+// 'join' should be an array of channel names to join automatically after connecting
+// 'debug', if true, will cause information about incoming messages to be logged to the console
+
+// Events (Client inherits from node's events.EventEmitter):
+c.on('ready', function () {});
+// fires when client is ready (connected and authenticated; autojoin channels will have been joined also, if given)
+c.on('joined', function (nick, channel) {});
+// fires when a channel is joined (including when the client itself joins), passing the nickname and channel
+// includes channel joins by the client; you can check (nick === c.nick) to filter
+c.on('message', function (message, from, to) {});
+// fires when a message is received, passing the message, who sent it, and the nick or channel that it was sent to
+
+// Methods:
+c.joinChannel(channel, function () {});
+// join the channel, then call the function (if given)
+c.sendMessage(to, message);
+// send a message; 'to' can be a channel or nick (for a pm)
+c.sendRawLine(line);
+// send a raw IRC message to the server
+// Ex: c.sendRawLine('MODE ##channel +o somenick');
+
+
+Other Functions:
+
+// parse a raw IRC message
+> irc.parseMessage(':nick!user@host PRIVMSG ##channel :This is a message.');
+[ 'nick!user@host', 'PRIVMSG', [ '##channel', 'This is a message.' ] ]
+// returns an array of [prefix, command, params]
+// if there is no prefix, it will be undefined
+// params is an array of the parameters
+// the final (message) parameter will be the last item of the array
+
+// parse a message prefix
+> irc.parsePrefix('nick!user@host');
+[ 'nick', 'user', 'host' ]
+// returns an array of [nick, user, host]
