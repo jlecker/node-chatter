@@ -9,26 +9,32 @@ Usage:
 
 // first, import the module
 var irc = require('irc');
+// or, to get just the Client
+var Client = require('irc').Client;
 
 
 The Client:
 // create a new client
-var c = new irc.Client('irc.server.net', 'clientnick');
+var c = new Client('irc.server.net', 'clientnick');
 // connects to the given server with the given nick
 
 // client with options (defaults shown)
-var c = new irc.Client(
+var c = new Client(
     'irc.server.net',
     'clientnick',
     {
         'port': 6667,
         'user': 'guest',
         'real': 'Guest',
+        'password': 'password',
         'join': [],
+        'nickTimeout': undefined,
         'debug': false
     }
 );
 // 'join' should be an array of channel names to join automatically after connecting
+// 'nickTimeout', if given, is the time to wait before automatically re-requesting a nick when it is unavailable
+  // if not given, the Client will not attempt to change the nick back to the desired nick
 // 'debug', if true, will cause information about incoming messages to be logged to the console
 
 // Events (Client inherits from node's events.EventEmitter):
@@ -45,6 +51,8 @@ c.joinChannel(channel, function () {});
 // join the channel, then call the function (if given)
 c.sendMessage(to, message);
 // send a message; 'to' can be a channel or nick (for a pm)
+c.setNick(nick);
+// set the Client's nick
 c.sendRawLine(line);
 // send a raw IRC message to the server
 // Ex: c.sendRawLine('MODE ##channel +o somenick');

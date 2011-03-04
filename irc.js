@@ -36,10 +36,12 @@ var net = require('net'),
         options = options || {};
         this.server = server;
         this.port = options.port || 6667;
-        this.nick = desiredNick;
+        this.lastNick = this.nick = this.desiredNick = desiredNick;
         this.user = options.user || 'guest';
         this.real = options.real || 'Guest';
+        this.password = options.password;
         this.autojoin = options.join || [];
+        this.nickTimeout = options.nickTimeout;
         this.debug = options.debug;
         this._connect();
     },
@@ -51,6 +53,9 @@ var net = require('net'),
                 this.c = net.createConnection(this.port, this.server);
                 this.c.setEncoding('utf8');
                 this.c.once('connect', function () {
+                    if (typeof this.password === 'string') {
+                        this.sendRawLine('PASS ' + this.password);
+                    }
                     this.sendRawLine('NICK ' + this.nick);
                     this.sendRawLine('USER ' + this.user + ' 0 * :' + this.real);
                 }.bind(this));
@@ -122,11 +127,41 @@ var net = require('net'),
                     } else {
                         this.emit('ready');
                     }
+                    if (this.nick !== this.desiredNick && this.nickTimeout) {
+                        setTimeout(function () {
+                            this.nick = this.desiredNick;
+                            this.sendRawLine('NICK ' + this.nick);
+                        }.bind(this), this.nickTimeout * 60 * 1000);
+                    }
                     return;
                 case '433': // nick already in use
-                    this.nick += '_';
-                    this.sendRawLine('NICK ' + this.nick);
-                    return;
+                    if (!this.ready) {
+                        this.lastNick = this.nick;
+                        this.nick += '_';
+                        this.sendRawLine('NICK ' + this.nick);
+                        return;
+                    }
+                    this.nick = this.lastNick;
+                    if (this.nickTimeout) {
+                        setTimeout(function () {
+                            this.nick = this.desiredNick;
+                            this.sendRawLine('NICK ' + this.nick);
+                        }.bind(this), this.nickTimeout * 60 * 1000);
+                    }
+                case '436': // nick collision
+                    if (!this.ready) {
+                        this.lastNick = this.nick;
+                        this.nick += '_';
+                        this.sendRawLine('NICK ' + this.nick);
+                        return;
+                    }
+                    this.nick = this.lastNick;
+                    if (this.nickTimeout) {
+                        setTimeout(function () {
+                            this.nick = this.desiredNick;
+                            this.sendRawLine('NICK ' + this.nick);
+                        }.bind(this), this.nickTimeout * 60 * 1000);
+                    }
             }
         },
         _autojoined: function () {
@@ -136,6 +171,9 @@ var net = require('net'),
         },
         sendRawLine: function (line) {
             if (this.c && this.c.writable) {
+                if (this.debug) {
+                    console.log('Sent: ' + line);
+                }
                 this.c.write(line + '\r\n');
             }
         },
@@ -149,6 +187,12 @@ var net = require('net'),
                 this.joining[channel] = callback;
                 this.sendRawLine('JOIN ' + channel);
             }
+        },
+        setNick: function (nick) {
+            this.lastNick = this.nick;
+            this.desiredNick = nick;
+            this.nick = nick;
+            this.sendRawLine('NICK ' + this.nick);
         }
     },
     attr;
