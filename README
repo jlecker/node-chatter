@@ -33,14 +33,14 @@ var c = new Client(
     }
 );
 // 'join' should be an array of channel names to join automatically after connecting
-// 'nickTimeout', if given, is the time to wait before automatically re-requesting a nick when it is unavailable
+// 'nickTimeout', if given, is the time (in minutes) to wait before automatically re-requesting a nick when it is unavailable
   // if not given, the Client will not attempt to change the nick back to the desired nick
 // 'debug', if true, will cause information about incoming messages to be logged to the console
 
 // Events (Client inherits from node's events.EventEmitter):
 c.on('ready', function () {});
 // fires when client is ready (connected and authenticated; autojoin channels will have been joined also, if given)
-c.on('joined', function (nick, channel) {});
+c.on('join', function (nick, channel) {});
 // fires when a channel is joined, passing the nickname and channel
 // includes channel joins by the client itself; you can check (nick === c.nick) to filter
 c.on('message', function (message, from, to) {});

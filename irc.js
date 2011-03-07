@@ -116,7 +116,7 @@ var net = require('net'),
                         delete this.joining[channel];
                         callback();
                     }
-                    this.emit('joined', nick, channel);
+                    this.emit('join', nick, channel);
                     return;
                 case '376': // end of MOTD
                     this.ready = true;
